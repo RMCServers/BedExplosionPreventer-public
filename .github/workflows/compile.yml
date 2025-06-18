@@ -1,0 +1,43 @@
+name: Build and Deploy Plugin
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+
+    - name: Install Bukkit API
+      run: mvn install:install-file -Dfile=BukkitAPI/bukkit-1.7.10-R0.1-20140817.175650-8.jar -DgroupId=org.bukkit -DartifactId=bukkit -Dversion=1.7.10-R0.1-SNAPSHOT -Dpackaging=jar
+
+    - name: Build with Maven
+      run: mvn package
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        # Artifact name
+        name: BedExplosionPreventer
+        # A file, directory or wildcard pattern that describes what to upload
+        path: target/BedExplosionPreventer.jar
+        # The desired behavior if no files are found using the provided path (warn/error/ignore)
+        if-no-files-found: warn
+
+    - name: Release artifact
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: '${{ secrets.GITHUB_TOKEN }}'
+        automatic_release_tag: latest
+        draft: true
+        prerelease: true
+        title: "BedExplosionPreventer Development Build"
+        files: "target/BedExplosionPreventer.jar"
